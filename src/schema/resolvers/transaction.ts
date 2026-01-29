@@ -1,0 +1,287 @@
+import { Prisma } from '@prisma/client';
+import { Context } from '../../context';
+import { requireAuth, NotFoundError } from '../../middleware/authMiddleware';
+import { invalidateCache } from '../../lib/redis';
+import { parseDecimal } from '../../lib/utils';
+
+interface TransactionFilterInput {
+  search?: string;
+  category?: string;
+  type?: 'INCOME' | 'EXPENSE' | 'TRANSFER';
+  accountId?: string;
+  startDate?: Date;
+  endDate?: Date;
+  minAmount?: number;
+  maxAmount?: number;
+}
+
+interface TransactionSortInput {
+  field?: 'DATE' | 'AMOUNT' | 'CATEGORY';
+  order?: 'ASC' | 'DESC';
+}
+
+interface CreateTransactionInput {
+  accountId: string;
+  amount: number;
+  type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
+  category: string;
+  merchant?: string;
+  description?: string;
+  date: Date;
+}
+
+interface UpdateTransactionInput {
+  accountId?: string;
+  amount?: number;
+  type?: 'INCOME' | 'EXPENSE' | 'TRANSFER';
+  category?: string;
+  merchant?: string;
+  description?: string;
+  date?: Date;
+}
+
+export const transactionResolvers = {
+  Query: {
+    transactions: async (
+      _: unknown,
+      args: {
+        pagination?: { page: number; limit: number };
+        filters?: TransactionFilterInput;
+        sort?: TransactionSortInput;
+      },
+      context: Context
+    ) => {
+      const user = requireAuth(context);
+
+      const page = args.pagination?.page ?? 1;
+      const limit = args.pagination?.limit ?? 20;
+      const skip = (page - 1) * limit;
+
+      const where: Prisma.TransactionWhereInput = {
+        userId: user.id,
+      };
+
+      // Apply filters
+      if (args.filters?.search) {
+        where.OR = [
+          { merchant: { contains: args.filters.search, mode: 'insensitive' } },
+          { description: { contains: args.filters.search, mode: 'insensitive' } },
+          { category: { contains: args.filters.search, mode: 'insensitive' } },
+        ];
+      }
+      if (args.filters?.category) where.category = args.filters.category;
+      if (args.filters?.type) where.type = args.filters.type;
+      if (args.filters?.accountId) where.accountId = args.filters.accountId;
+      if (args.filters?.startDate || args.filters?.endDate) {
+        where.date = {};
+        if (args.filters.startDate) where.date.gte = args.filters.startDate;
+        if (args.filters.endDate) where.date.lte = args.filters.endDate;
+      }
+      if (args.filters?.minAmount || args.filters?.maxAmount) {
+        where.amount = {};
+        if (args.filters.minAmount) where.amount.gte = args.filters.minAmount;
+        if (args.filters.maxAmount) where.amount.lte = args.filters.maxAmount;
+      }
+
+      // Build order by
+      const orderBy: Prisma.TransactionOrderByWithRelationInput = {};
+      const sortField = args.sort?.field?.toLowerCase() ?? 'date';
+      const sortOrder = args.sort?.order?.toLowerCase() === 'asc' ? 'asc' : 'desc';
+
+      if (sortField === 'date') orderBy.date = sortOrder;
+      else if (sortField === 'amount') orderBy.amount = sortOrder;
+      else if (sortField === 'category') orderBy.category = sortOrder;
+      else orderBy.date = 'desc';
+
+      const [transactions, totalCount] = await Promise.all([
+        context.prisma.transaction.findMany({
+          where,
+          orderBy,
+          skip,
+          take: limit,
+          include: { account: true },
+        }),
+        context.prisma.transaction.count({ where }),
+      ]);
+
+      const totalPages = Math.ceil(totalCount / limit);
+
+      return {
+        edges: transactions.map((t, index) => ({
+          node: t,
+          cursor: Buffer.from(`${skip + index}`).toString('base64'),
+        })),
+        pageInfo: {
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+          totalCount,
+          totalPages,
+        },
+      };
+    },
+
+    transaction: async (_: unknown, { id }: { id: string }, context: Context) => {
+      const user = requireAuth(context);
+
+      const transaction = await context.prisma.transaction.findFirst({
+        where: { id, userId: user.id },
+        include: { account: true },
+      });
+
+      if (!transaction) {
+        throw new NotFoundError('Transaction');
+      }
+
+      return transaction;
+    },
+
+    recentTransactions: async (
+      _: unknown,
+      { limit = 5 }: { limit?: number },
+      context: Context
+    ) => {
+      const user = requireAuth(context);
+
+      return context.prisma.transaction.findMany({
+        where: { userId: user.id },
+        orderBy: { date: 'desc' },
+        take: limit,
+        include: { account: true },
+      });
+    },
+
+    categories: async (_: unknown, __: unknown, context: Context) => {
+      const user = requireAuth(context);
+
+      const transactions = await context.prisma.transaction.findMany({
+        where: { userId: user.id },
+        select: { category: true },
+        distinct: ['category'],
+      });
+
+      return transactions.map((t) => t.category);
+    },
+  },
+
+  Mutation: {
+    createTransaction: async (
+      _: unknown,
+      { input }: { input: CreateTransactionInput },
+      context: Context
+    ) => {
+      const user = requireAuth(context);
+
+      // Verify account ownership
+      const account = await context.prisma.account.findFirst({
+        where: { id: input.accountId, userId: user.id },
+      });
+
+      if (!account) {
+        throw new NotFoundError('Account');
+      }
+
+      const transaction = await context.prisma.transaction.create({
+        data: {
+          ...input,
+          userId: user.id,
+        },
+        include: { account: true },
+      });
+
+      // Update account balance
+      const balanceChange =
+        input.type === 'INCOME'
+          ? input.amount
+          : input.type === 'EXPENSE'
+            ? -input.amount
+            : 0;
+
+      if (balanceChange !== 0) {
+        await context.prisma.account.update({
+          where: { id: input.accountId },
+          data: { balance: { increment: balanceChange } },
+        });
+      }
+
+      // Invalidate caches
+      await invalidateCache(`user:${user.id}:*`);
+
+      return transaction;
+    },
+
+    updateTransaction: async (
+      _: unknown,
+      { id, input }: { id: string; input: UpdateTransactionInput },
+      context: Context
+    ) => {
+      const user = requireAuth(context);
+
+      const existing = await context.prisma.transaction.findFirst({
+        where: { id, userId: user.id },
+      });
+
+      if (!existing) {
+        throw new NotFoundError('Transaction');
+      }
+
+      // If changing account, verify new account ownership
+      if (input.accountId && input.accountId !== existing.accountId) {
+        const newAccount = await context.prisma.account.findFirst({
+          where: { id: input.accountId, userId: user.id },
+        });
+
+        if (!newAccount) {
+          throw new NotFoundError('Account');
+        }
+      }
+
+      const transaction = await context.prisma.transaction.update({
+        where: { id },
+        data: input,
+        include: { account: true },
+      });
+
+      await invalidateCache(`user:${user.id}:*`);
+
+      return transaction;
+    },
+
+    deleteTransaction: async (_: unknown, { id }: { id: string }, context: Context) => {
+      const user = requireAuth(context);
+
+      const transaction = await context.prisma.transaction.findFirst({
+        where: { id, userId: user.id },
+      });
+
+      if (!transaction) {
+        throw new NotFoundError('Transaction');
+      }
+
+      // Reverse the balance change
+      const balanceChange =
+        transaction.type === 'INCOME'
+          ? -parseDecimal(transaction.amount)
+          : transaction.type === 'EXPENSE'
+            ? parseDecimal(transaction.amount)
+            : 0;
+
+      if (balanceChange !== 0) {
+        await context.prisma.account.update({
+          where: { id: transaction.accountId },
+          data: { balance: { increment: balanceChange } },
+        });
+      }
+
+      await context.prisma.transaction.delete({ where: { id } });
+      await invalidateCache(`user:${user.id}:*`);
+
+      return true;
+    },
+  },
+
+  Transaction: {
+    amount: (parent: { amount: unknown }) => {
+      return parseDecimal(parent.amount as number);
+    },
+  },
+};
