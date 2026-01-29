@@ -1,52 +1,56 @@
 // Test setup file
 import { jest } from '@jest/globals';
 
-const mockPrismaClient = {
+// Helper to create properly typed mock functions that accept any value
+const createMockFn = (): any => jest.fn();
+
+const mockPrismaClient: any = {
   user: {
-    findUnique: jest.fn(),
-    findMany: jest.fn(),
-    findFirst: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
+    findUnique: createMockFn(),
+    findMany: createMockFn(),
+    findFirst: createMockFn(),
+    create: createMockFn(),
+    update: createMockFn(),
+    delete: createMockFn(),
   },
   account: {
-    findUnique: jest.fn(),
-    findMany: jest.fn(),
-    findFirst: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    aggregate: jest.fn(),
+    findUnique: createMockFn(),
+    findMany: createMockFn(),
+    findFirst: createMockFn(),
+    create: createMockFn(),
+    update: createMockFn(),
+    delete: createMockFn(),
+    aggregate: createMockFn(),
   },
   transaction: {
-    findUnique: jest.fn(),
-    findMany: jest.fn(),
-    findFirst: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    count: jest.fn(),
-    groupBy: jest.fn(),
-    aggregate: jest.fn(),
+    findUnique: createMockFn(),
+    findMany: createMockFn(),
+    findFirst: createMockFn(),
+    create: createMockFn(),
+    update: createMockFn(),
+    delete: createMockFn(),
+    count: createMockFn(),
+    groupBy: createMockFn(),
+    aggregate: createMockFn(),
   },
   savingsGoal: {
-    findUnique: jest.fn(),
-    findMany: jest.fn(),
-    findFirst: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    aggregate: jest.fn(),
+    findUnique: createMockFn(),
+    findMany: createMockFn(),
+    findFirst: createMockFn(),
+    create: createMockFn(),
+    update: createMockFn(),
+    delete: createMockFn(),
+    aggregate: createMockFn(),
   },
   $transaction: jest.fn((callback: any) => callback(mockPrismaClient)),
 };
 
 // Mock Prisma client - export both named and default
+// Cast to any to avoid TypeScript strict type checking issues with jest.Mock
 jest.mock('../lib/prisma', () => ({
   __esModule: true,
-  prisma: mockPrismaClient,
-  default: mockPrismaClient,
+  prisma: mockPrismaClient as any,
+  default: mockPrismaClient as any,
 }));
 
 // Mock Redis client

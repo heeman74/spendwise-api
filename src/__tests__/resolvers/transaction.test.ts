@@ -11,8 +11,8 @@ describe('Transaction Resolvers', () => {
 
   describe('Query.transactions', () => {
     it('should return paginated transactions for authenticated user', async () => {
-      (prisma.transaction.findMany as jest.Mock).mockResolvedValue(mockTransactions);
-      (prisma.transaction.count as jest.Mock).mockResolvedValue(3);
+      (prisma.transaction.findMany as any).mockResolvedValue(mockTransactions);
+      (prisma.transaction.count as any).mockResolvedValue(3);
 
       const context = {
         ...mockContext,
@@ -33,8 +33,8 @@ describe('Transaction Resolvers', () => {
 
     it('should filter transactions by category', async () => {
       const foodTransactions = mockTransactions.filter(t => t.category === 'Food & Dining');
-      (prisma.transaction.findMany as jest.Mock).mockResolvedValue(foodTransactions);
-      (prisma.transaction.count as jest.Mock).mockResolvedValue(1);
+      (prisma.transaction.findMany as any).mockResolvedValue(foodTransactions);
+      (prisma.transaction.count as any).mockResolvedValue(1);
 
       const context = {
         ...mockContext,
@@ -61,8 +61,8 @@ describe('Transaction Resolvers', () => {
     });
 
     it('should filter transactions by type', async () => {
-      (prisma.transaction.findMany as jest.Mock).mockResolvedValue([]);
-      (prisma.transaction.count as jest.Mock).mockResolvedValue(0);
+      (prisma.transaction.findMany as any).mockResolvedValue([]);
+      (prisma.transaction.count as any).mockResolvedValue(0);
 
       const context = {
         ...mockContext,
@@ -89,8 +89,8 @@ describe('Transaction Resolvers', () => {
     });
 
     it('should filter transactions by date range', async () => {
-      (prisma.transaction.findMany as jest.Mock).mockResolvedValue([]);
-      (prisma.transaction.count as jest.Mock).mockResolvedValue(0);
+      (prisma.transaction.findMany as any).mockResolvedValue([]);
+      (prisma.transaction.count as any).mockResolvedValue(0);
 
       const context = {
         ...mockContext,
@@ -120,8 +120,8 @@ describe('Transaction Resolvers', () => {
     });
 
     it('should filter transactions by amount range', async () => {
-      (prisma.transaction.findMany as jest.Mock).mockResolvedValue([]);
-      (prisma.transaction.count as jest.Mock).mockResolvedValue(0);
+      (prisma.transaction.findMany as any).mockResolvedValue([]);
+      (prisma.transaction.count as any).mockResolvedValue(0);
 
       const context = {
         ...mockContext,
@@ -148,8 +148,8 @@ describe('Transaction Resolvers', () => {
     });
 
     it('should search transactions by text', async () => {
-      (prisma.transaction.findMany as jest.Mock).mockResolvedValue([]);
-      (prisma.transaction.count as jest.Mock).mockResolvedValue(0);
+      (prisma.transaction.findMany as any).mockResolvedValue([]);
+      (prisma.transaction.count as any).mockResolvedValue(0);
 
       const context = {
         ...mockContext,
@@ -180,8 +180,8 @@ describe('Transaction Resolvers', () => {
     });
 
     it('should sort transactions by amount ascending', async () => {
-      (prisma.transaction.findMany as jest.Mock).mockResolvedValue([]);
-      (prisma.transaction.count as jest.Mock).mockResolvedValue(0);
+      (prisma.transaction.findMany as any).mockResolvedValue([]);
+      (prisma.transaction.count as any).mockResolvedValue(0);
 
       const context = {
         ...mockContext,
@@ -225,7 +225,7 @@ describe('Transaction Resolvers', () => {
   describe('Query.transaction', () => {
     it('should return a specific transaction by id', async () => {
       const mockTransaction = mockTransactions[0];
-      (prisma.transaction.findFirst as jest.Mock).mockResolvedValue(mockTransaction);
+      (prisma.transaction.findFirst as any).mockResolvedValue(mockTransaction);
 
       const context = {
         ...mockContext,
@@ -246,7 +246,7 @@ describe('Transaction Resolvers', () => {
     });
 
     it('should throw NOT_FOUND when transaction does not exist', async () => {
-      (prisma.transaction.findFirst as jest.Mock).mockResolvedValue(null);
+      (prisma.transaction.findFirst as any).mockResolvedValue(null);
 
       const context = {
         ...mockContext,
@@ -261,7 +261,7 @@ describe('Transaction Resolvers', () => {
 
   describe('Query.recentTransactions', () => {
     it('should return recent transactions with default limit', async () => {
-      (prisma.transaction.findMany as jest.Mock).mockResolvedValue(mockTransactions.slice(0, 5));
+      (prisma.transaction.findMany as any).mockResolvedValue(mockTransactions.slice(0, 5));
 
       const context = {
         ...mockContext,
@@ -284,7 +284,7 @@ describe('Transaction Resolvers', () => {
     });
 
     it('should return recent transactions with custom limit', async () => {
-      (prisma.transaction.findMany as jest.Mock).mockResolvedValue(mockTransactions.slice(0, 2));
+      (prisma.transaction.findMany as any).mockResolvedValue(mockTransactions.slice(0, 2));
 
       const context = {
         ...mockContext,
@@ -305,7 +305,7 @@ describe('Transaction Resolvers', () => {
 
   describe('Query.categories', () => {
     it('should return distinct categories', async () => {
-      (prisma.transaction.findMany as jest.Mock).mockResolvedValue([
+      (prisma.transaction.findMany as any).mockResolvedValue([
         { category: 'Food & Dining' },
         { category: 'Entertainment' },
         { category: 'Income' },
@@ -343,9 +343,9 @@ describe('Transaction Resolvers', () => {
         account: mockAccounts[0],
       };
 
-      (prisma.account.findFirst as jest.Mock).mockResolvedValue(mockAccounts[0]);
-      (prisma.transaction.create as jest.Mock).mockResolvedValue(newTransaction);
-      (prisma.account.update as jest.Mock).mockResolvedValue({
+      (prisma.account.findFirst as any).mockResolvedValue(mockAccounts[0]);
+      (prisma.transaction.create as any).mockResolvedValue(newTransaction);
+      (prisma.account.update as any).mockResolvedValue({
         ...mockAccounts[0],
         balance: 4900,
       });
@@ -393,9 +393,9 @@ describe('Transaction Resolvers', () => {
         account: mockAccounts[0],
       };
 
-      (prisma.account.findFirst as jest.Mock).mockResolvedValue(mockAccounts[0]);
-      (prisma.transaction.create as jest.Mock).mockResolvedValue(incomeTransaction);
-      (prisma.account.update as jest.Mock).mockResolvedValue({});
+      (prisma.account.findFirst as any).mockResolvedValue(mockAccounts[0]);
+      (prisma.transaction.create as any).mockResolvedValue(incomeTransaction);
+      (prisma.account.update as any).mockResolvedValue({});
 
       const context = {
         ...mockContext,
@@ -424,7 +424,7 @@ describe('Transaction Resolvers', () => {
     });
 
     it('should throw NOT_FOUND when account does not exist', async () => {
-      (prisma.account.findFirst as jest.Mock).mockResolvedValue(null);
+      (prisma.account.findFirst as any).mockResolvedValue(null);
 
       const context = {
         ...mockContext,
@@ -450,8 +450,8 @@ describe('Transaction Resolvers', () => {
       const existingTransaction = mockTransactions[0];
       const updatedTransaction = { ...existingTransaction, category: 'Groceries' };
 
-      (prisma.transaction.findFirst as jest.Mock).mockResolvedValue(existingTransaction);
-      (prisma.transaction.update as jest.Mock).mockResolvedValue(updatedTransaction);
+      (prisma.transaction.findFirst as any).mockResolvedValue(existingTransaction);
+      (prisma.transaction.update as any).mockResolvedValue(updatedTransaction);
 
       const context = {
         ...mockContext,
@@ -473,7 +473,7 @@ describe('Transaction Resolvers', () => {
     });
 
     it('should throw NOT_FOUND when transaction does not exist', async () => {
-      (prisma.transaction.findFirst as jest.Mock).mockResolvedValue(null);
+      (prisma.transaction.findFirst as any).mockResolvedValue(null);
 
       const context = {
         ...mockContext,
@@ -493,9 +493,9 @@ describe('Transaction Resolvers', () => {
   describe('Mutation.deleteTransaction', () => {
     it('should delete a transaction and reverse balance change', async () => {
       const transaction = mockTransactions[0]; // EXPENSE transaction
-      (prisma.transaction.findFirst as jest.Mock).mockResolvedValue(transaction);
-      (prisma.transaction.delete as jest.Mock).mockResolvedValue(transaction);
-      (prisma.account.update as jest.Mock).mockResolvedValue({});
+      (prisma.transaction.findFirst as any).mockResolvedValue(transaction);
+      (prisma.transaction.delete as any).mockResolvedValue(transaction);
+      (prisma.account.update as any).mockResolvedValue({});
 
       const context = {
         ...mockContext,
@@ -517,7 +517,7 @@ describe('Transaction Resolvers', () => {
     });
 
     it('should throw NOT_FOUND when transaction does not exist', async () => {
-      (prisma.transaction.findFirst as jest.Mock).mockResolvedValue(null);
+      (prisma.transaction.findFirst as any).mockResolvedValue(null);
 
       const context = {
         ...mockContext,

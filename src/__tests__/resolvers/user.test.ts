@@ -6,7 +6,7 @@ import { prisma } from '../../lib/prisma';
 
 // Mock bcryptjs
 jest.mock('bcryptjs', () => ({
-  hash: jest.fn().mockResolvedValue('$2a$12$hashedpassword'),
+  hash: jest.fn<any>().mockResolvedValue('$2a$12$hashedpassword'),
   compare: jest.fn(),
 }));
 
@@ -29,7 +29,7 @@ describe('User Resolvers', () => {
         accounts: mockAccounts,
         goals: [],
       };
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(userWithRelations);
+      (prisma.user.findUnique as any).mockResolvedValue(userWithRelations);
 
       const context = {
         ...mockContext,
@@ -60,8 +60,8 @@ describe('User Resolvers', () => {
 
   describe('Mutation.login', () => {
     it('should return token and user on successful login', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
-      (compare as jest.Mock).mockResolvedValue(true);
+      (prisma.user.findUnique as any).mockResolvedValue(mockUser);
+      (compare as any).mockResolvedValue(true);
 
       const context = {
         prisma,
@@ -80,7 +80,7 @@ describe('User Resolvers', () => {
     });
 
     it('should throw UNAUTHENTICATED error when user not found', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+      (prisma.user.findUnique as any).mockResolvedValue(null);
 
       const context = {
         prisma,
@@ -100,8 +100,8 @@ describe('User Resolvers', () => {
     });
 
     it('should throw UNAUTHENTICATED error when password is invalid', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
-      (compare as jest.Mock).mockResolvedValue(false);
+      (prisma.user.findUnique as any).mockResolvedValue(mockUser);
+      (compare as any).mockResolvedValue(false);
 
       const context = {
         prisma,
@@ -122,7 +122,7 @@ describe('User Resolvers', () => {
 
     it('should throw UNAUTHENTICATED error when user has no password', async () => {
       const userWithoutPassword = { ...mockUser, password: null };
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(userWithoutPassword);
+      (prisma.user.findUnique as any).mockResolvedValue(userWithoutPassword);
 
       const context = {
         prisma,
@@ -154,8 +154,8 @@ describe('User Resolvers', () => {
         updatedAt: new Date(),
       };
 
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
-      (prisma.user.create as jest.Mock).mockResolvedValue(newUser);
+      (prisma.user.findUnique as any).mockResolvedValue(null);
+      (prisma.user.create as any).mockResolvedValue(newUser);
 
       const context = {
         prisma,
@@ -185,8 +185,8 @@ describe('User Resolvers', () => {
         updatedAt: new Date(),
       };
 
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
-      (prisma.user.create as jest.Mock).mockResolvedValue(newUser);
+      (prisma.user.findUnique as any).mockResolvedValue(null);
+      (prisma.user.create as any).mockResolvedValue(newUser);
 
       const context = {
         prisma,
@@ -208,7 +208,7 @@ describe('User Resolvers', () => {
     });
 
     it('should throw BAD_USER_INPUT when email already exists', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
+      (prisma.user.findUnique as any).mockResolvedValue(mockUser);
 
       const context = {
         prisma,
@@ -231,7 +231,7 @@ describe('User Resolvers', () => {
   describe('Mutation.updateProfile', () => {
     it('should update user profile', async () => {
       const updatedUser = { ...mockUser, name: 'Updated Name' };
-      (prisma.user.update as jest.Mock).mockResolvedValue(updatedUser);
+      (prisma.user.update as any).mockResolvedValue(updatedUser);
 
       const context = {
         ...mockContext,
@@ -253,7 +253,7 @@ describe('User Resolvers', () => {
 
     it('should update user image', async () => {
       const updatedUser = { ...mockUser, image: 'https://example.com/avatar.jpg' };
-      (prisma.user.update as jest.Mock).mockResolvedValue(updatedUser);
+      (prisma.user.update as any).mockResolvedValue(updatedUser);
 
       const context = {
         ...mockContext,
@@ -286,7 +286,7 @@ describe('User Resolvers', () => {
   describe('User field resolvers', () => {
     describe('User.accounts', () => {
       it('should return user accounts', async () => {
-        (prisma.account.findMany as jest.Mock).mockResolvedValue(mockAccounts);
+        (prisma.account.findMany as any).mockResolvedValue(mockAccounts);
 
         const context = {
           ...mockContext,
@@ -309,8 +309,8 @@ describe('User Resolvers', () => {
     describe('User.transactions', () => {
       it('should return paginated user transactions', async () => {
         const mockTxns = [{ id: 'txn-1' }, { id: 'txn-2' }];
-        (prisma.transaction.findMany as jest.Mock).mockResolvedValue(mockTxns);
-        (prisma.transaction.count as jest.Mock).mockResolvedValue(2);
+        (prisma.transaction.findMany as any).mockResolvedValue(mockTxns);
+        (prisma.transaction.count as any).mockResolvedValue(2);
 
         const context = {
           ...mockContext,
@@ -331,7 +331,7 @@ describe('User Resolvers', () => {
     describe('User.savingsGoals', () => {
       it('should return user savings goals', async () => {
         const mockGoals = [{ id: 'goal-1', name: 'Emergency Fund' }];
-        (prisma.savingsGoal.findMany as jest.Mock).mockResolvedValue(mockGoals);
+        (prisma.savingsGoal.findMany as any).mockResolvedValue(mockGoals);
 
         const context = {
           ...mockContext,

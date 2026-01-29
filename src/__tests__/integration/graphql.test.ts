@@ -13,8 +13,8 @@ jest.mock('../../context/auth', () => ({
 
 // Mock bcryptjs
 jest.mock('bcryptjs', () => ({
-  hash: jest.fn().mockResolvedValue('$2a$12$hashedpassword'),
-  compare: jest.fn().mockResolvedValue(true),
+  hash: jest.fn<any>().mockResolvedValue('$2a$12$hashedpassword'),
+  compare: jest.fn<any>().mockResolvedValue(true),
 }));
 
 // Import after mocks
@@ -66,7 +66,7 @@ describe('GraphQL API Integration Tests', () => {
     });
 
     it('should return current user for me query when authenticated', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      (prisma.user.findUnique as any).mockResolvedValue({
         ...mockUser,
         accounts: mockAccounts,
         goals: [],
@@ -98,8 +98,8 @@ describe('GraphQL API Integration Tests', () => {
     });
 
     it('should register a new user', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
-      (prisma.user.create as jest.Mock).mockResolvedValue({
+      (prisma.user.findUnique as any).mockResolvedValue(null);
+      (prisma.user.create as any).mockResolvedValue({
         ...mockUser,
         id: 'new-user-id',
         email: 'newuser@example.com',
@@ -140,7 +140,7 @@ describe('GraphQL API Integration Tests', () => {
     });
 
     it('should login a user', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
+      (prisma.user.findUnique as any).mockResolvedValue(mockUser);
 
       const mutation = gql`
         mutation Login($email: String!, $password: String!) {
@@ -178,7 +178,7 @@ describe('GraphQL API Integration Tests', () => {
 
   describe('Account Queries and Mutations', () => {
     it('should return accounts for authenticated user', async () => {
-      (prisma.account.findMany as jest.Mock).mockResolvedValue(mockAccounts);
+      (prisma.account.findMany as any).mockResolvedValue(mockAccounts);
 
       const query = gql`
         query Accounts {
@@ -237,7 +237,7 @@ describe('GraphQL API Integration Tests', () => {
         updatedAt: new Date(),
       };
 
-      (prisma.account.create as jest.Mock).mockResolvedValue(newAccount);
+      (prisma.account.create as any).mockResolvedValue(newAccount);
 
       const mutation = gql`
         mutation CreateAccount($input: CreateAccountInput!) {
@@ -276,7 +276,7 @@ describe('GraphQL API Integration Tests', () => {
     });
 
     it('should calculate total balance correctly', async () => {
-      (prisma.account.findMany as jest.Mock).mockResolvedValue([
+      (prisma.account.findMany as any).mockResolvedValue([
         { balance: 5000, type: 'CHECKING' },
         { balance: 10000, type: 'SAVINGS' },
         { balance: 500, type: 'CREDIT' },
@@ -304,8 +304,8 @@ describe('GraphQL API Integration Tests', () => {
 
   describe('Transaction Queries and Mutations', () => {
     it('should return transactions with pagination', async () => {
-      (prisma.transaction.findMany as jest.Mock).mockResolvedValue(mockTransactions);
-      (prisma.transaction.count as jest.Mock).mockResolvedValue(3);
+      (prisma.transaction.findMany as any).mockResolvedValue(mockTransactions);
+      (prisma.transaction.count as any).mockResolvedValue(3);
 
       const query = gql`
         query Transactions($pagination: PaginationInput) {
@@ -337,13 +337,13 @@ describe('GraphQL API Integration Tests', () => {
       expect(response.body.kind).toBe('single');
       if (response.body.kind === 'single') {
         expect(response.body.singleResult.errors).toBeUndefined();
-        expect(response.body.singleResult.data?.transactions.edges).toHaveLength(3);
-        expect(response.body.singleResult.data?.transactions.pageInfo.totalCount).toBe(3);
+        expect((response.body.singleResult.data as any)?.transactions.edges).toHaveLength(3);
+        expect((response.body.singleResult.data as any)?.transactions.pageInfo.totalCount).toBe(3);
       }
     });
 
     it('should return recent transactions', async () => {
-      (prisma.transaction.findMany as jest.Mock).mockResolvedValue(mockTransactions.slice(0, 5));
+      (prisma.transaction.findMany as any).mockResolvedValue(mockTransactions.slice(0, 5));
 
       const query = gql`
         query RecentTransactions($limit: Int) {
@@ -384,9 +384,9 @@ describe('GraphQL API Integration Tests', () => {
         account: mockAccounts[0],
       };
 
-      (prisma.account.findFirst as jest.Mock).mockResolvedValue(mockAccounts[0]);
-      (prisma.transaction.create as jest.Mock).mockResolvedValue(newTransaction);
-      (prisma.account.update as jest.Mock).mockResolvedValue({});
+      (prisma.account.findFirst as any).mockResolvedValue(mockAccounts[0]);
+      (prisma.transaction.create as any).mockResolvedValue(newTransaction);
+      (prisma.account.update as any).mockResolvedValue({});
 
       const mutation = gql`
         mutation CreateTransaction($input: CreateTransactionInput!) {
@@ -427,7 +427,7 @@ describe('GraphQL API Integration Tests', () => {
     });
 
     it('should return categories', async () => {
-      (prisma.transaction.findMany as jest.Mock).mockResolvedValue([
+      (prisma.transaction.findMany as any).mockResolvedValue([
         { category: 'Food & Dining' },
         { category: 'Entertainment' },
         { category: 'Shopping' },
@@ -455,13 +455,13 @@ describe('GraphQL API Integration Tests', () => {
   describe('Dashboard Stats Query', () => {
     it('should return dashboard stats', async () => {
       // Mock account and transaction data
-      (prisma.account.findMany as jest.Mock).mockResolvedValue(mockAccounts);
-      (prisma.transaction.findMany as jest.Mock).mockResolvedValue(mockTransactions);
-      (prisma.transaction.groupBy as jest.Mock).mockResolvedValue([
+      (prisma.account.findMany as any).mockResolvedValue(mockAccounts);
+      (prisma.transaction.findMany as any).mockResolvedValue(mockTransactions);
+      (prisma.transaction.groupBy as any).mockResolvedValue([
         { category: 'Food & Dining', _sum: { amount: 150 } },
         { category: 'Entertainment', _sum: { amount: 75 } },
       ]);
-      (prisma.transaction.aggregate as jest.Mock).mockResolvedValue({
+      (prisma.transaction.aggregate as any).mockResolvedValue({
         _sum: { amount: 5000 },
       });
 

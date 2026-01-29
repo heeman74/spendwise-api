@@ -4,6 +4,9 @@ import { accountResolvers } from '../../schema/resolvers/account';
 import { mockAccounts, mockContext, mockUnauthenticatedContext } from '../mocks/data';
 import { prisma } from '../../lib/prisma';
 
+// Cast prisma methods to any to avoid type issues with mocks
+const prismaMock = prisma as any;
+
 describe('Account Resolvers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -11,7 +14,7 @@ describe('Account Resolvers', () => {
 
   describe('Query.accounts', () => {
     it('should return all accounts for authenticated user', async () => {
-      (prisma.account.findMany as jest.Mock).mockResolvedValue(mockAccounts);
+      prismaMock.account.findMany.mockResolvedValue(mockAccounts);
 
       const context = {
         ...mockContext,
@@ -21,7 +24,7 @@ describe('Account Resolvers', () => {
       const result = await accountResolvers.Query.accounts(null, {}, context as any);
 
       expect(result).toEqual(mockAccounts);
-      expect(prisma.account.findMany).toHaveBeenCalledWith({
+      expect(prismaMock.account.findMany).toHaveBeenCalledWith({
         where: { userId: 'user-123' },
         orderBy: { createdAt: 'desc' },
       });
@@ -48,7 +51,7 @@ describe('Account Resolvers', () => {
   describe('Query.account', () => {
     it('should return a specific account by id', async () => {
       const mockAccount = mockAccounts[0];
-      (prisma.account.findFirst as jest.Mock).mockResolvedValue(mockAccount);
+      prismaMock.account.findFirst.mockResolvedValue(mockAccount);
 
       const context = {
         ...mockContext,
@@ -62,13 +65,13 @@ describe('Account Resolvers', () => {
       );
 
       expect(result).toEqual(mockAccount);
-      expect(prisma.account.findFirst).toHaveBeenCalledWith({
+      expect(prismaMock.account.findFirst).toHaveBeenCalledWith({
         where: { id: 'acc-1', userId: 'user-123' },
       });
     });
 
     it('should throw NOT_FOUND error when account does not exist', async () => {
-      (prisma.account.findFirst as jest.Mock).mockResolvedValue(null);
+      prismaMock.account.findFirst.mockResolvedValue(null);
 
       const context = {
         ...mockContext,
@@ -83,7 +86,7 @@ describe('Account Resolvers', () => {
 
   describe('Query.totalBalance', () => {
     it('should calculate total balance correctly', async () => {
-      (prisma.account.findMany as jest.Mock).mockResolvedValue([
+      prismaMock.account.findMany.mockResolvedValue([
         { balance: 5000, type: 'CHECKING' },
         { balance: 15000, type: 'SAVINGS' },
         { balance: 1250.75, type: 'CREDIT' }, // Credit should be subtracted
@@ -101,7 +104,7 @@ describe('Account Resolvers', () => {
     });
 
     it('should return 0 when no accounts exist', async () => {
-      (prisma.account.findMany as jest.Mock).mockResolvedValue([]);
+      prismaMock.account.findMany.mockResolvedValue([]);
 
       const context = {
         ...mockContext,
@@ -127,7 +130,7 @@ describe('Account Resolvers', () => {
         updatedAt: new Date(),
       };
 
-      (prisma.account.create as jest.Mock).mockResolvedValue(newAccount);
+      prismaMock.account.create.mockResolvedValue(newAccount);
 
       const context = {
         ...mockContext,
@@ -148,7 +151,7 @@ describe('Account Resolvers', () => {
       );
 
       expect(result).toEqual(newAccount);
-      expect(prisma.account.create).toHaveBeenCalledWith({
+      expect(prismaMock.account.create).toHaveBeenCalledWith({
         data: {
           ...input,
           userId: 'user-123',
@@ -182,8 +185,8 @@ describe('Account Resolvers', () => {
       const existingAccount = mockAccounts[0];
       const updatedAccount = { ...existingAccount, name: 'Updated Name' };
 
-      (prisma.account.findFirst as jest.Mock).mockResolvedValue(existingAccount);
-      (prisma.account.update as jest.Mock).mockResolvedValue(updatedAccount);
+      prismaMock.account.findFirst.mockResolvedValue(existingAccount);
+      prismaMock.account.update.mockResolvedValue(updatedAccount);
 
       const context = {
         ...mockContext,
@@ -197,14 +200,14 @@ describe('Account Resolvers', () => {
       );
 
       expect(result.name).toBe('Updated Name');
-      expect(prisma.account.update).toHaveBeenCalledWith({
+      expect(prismaMock.account.update).toHaveBeenCalledWith({
         where: { id: 'acc-1' },
         data: { name: 'Updated Name' },
       });
     });
 
     it('should throw NOT_FOUND when account does not exist', async () => {
-      (prisma.account.findFirst as jest.Mock).mockResolvedValue(null);
+      prismaMock.account.findFirst.mockResolvedValue(null);
 
       const context = {
         ...mockContext,
@@ -223,8 +226,8 @@ describe('Account Resolvers', () => {
 
   describe('Mutation.deleteAccount', () => {
     it('should delete an existing account', async () => {
-      (prisma.account.findFirst as jest.Mock).mockResolvedValue(mockAccounts[0]);
-      (prisma.account.delete as jest.Mock).mockResolvedValue(mockAccounts[0]);
+      prismaMock.account.findFirst.mockResolvedValue(mockAccounts[0]);
+      prismaMock.account.delete.mockResolvedValue(mockAccounts[0]);
 
       const context = {
         ...mockContext,
@@ -238,11 +241,11 @@ describe('Account Resolvers', () => {
       );
 
       expect(result).toBe(true);
-      expect(prisma.account.delete).toHaveBeenCalledWith({ where: { id: 'acc-1' } });
+      expect(prismaMock.account.delete).toHaveBeenCalledWith({ where: { id: 'acc-1' } });
     });
 
     it('should throw NOT_FOUND when account does not exist', async () => {
-      (prisma.account.findFirst as jest.Mock).mockResolvedValue(null);
+      prismaMock.account.findFirst.mockResolvedValue(null);
 
       const context = {
         ...mockContext,
