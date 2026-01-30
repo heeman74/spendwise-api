@@ -91,6 +91,7 @@ export const adviceResolvers = {
         monthlyIncome > 0 ? (wantsSpending / monthlyIncome) * 100 : 0;
 
       // Generate advice based on analysis
+      // Todo: AI generated advice could be integrated here for more personalized tips
 
       // 1. Savings rate advice
       if (savingsRate < 10) {

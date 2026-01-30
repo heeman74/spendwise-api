@@ -16,6 +16,7 @@ export const userTypeDefs = gql`
   type AuthPayload {
     token: String!
     user: User!
+    requiresSetup: Boolean
   }
 
   extend type Query {

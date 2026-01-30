@@ -81,6 +81,7 @@ export const userResolvers = {
       return {
         token,
         user,
+        requiresSetup: true, // New users must set up 2FA
       };
     },
 
