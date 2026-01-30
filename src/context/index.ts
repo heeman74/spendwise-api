@@ -1,11 +1,10 @@
-import { PrismaClient } from '@prisma/client';
 import Redis from 'ioredis';
 import { getUserFromToken, AuthUser } from './auth';
 import { prisma } from '../lib/prisma';
 import { redis } from '../lib/redis';
 
 export interface Context {
-  prisma: PrismaClient;
+  prisma: typeof prisma;
   redis: Redis;
   user: AuthUser | null;
 }

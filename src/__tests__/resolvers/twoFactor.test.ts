@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { fieldEncryptionExtension } from 'prisma-field-encryption';
 import { twoFactorResolvers } from '../../schema/resolvers/twoFactor';
 import { twoFactorService, TwoFactorService } from '../../lib/twoFactor';
 import { emailService, EmailService } from '../../lib/email';
@@ -8,7 +9,7 @@ import jwt from 'jsonwebtoken';
 import Redis from 'ioredis-mock';
 import { prisma as globalPrisma } from '../../lib/prisma';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient().$extends(fieldEncryptionExtension());
 const redis = new Redis();
 
 describe('TwoFactor Resolvers', () => {
