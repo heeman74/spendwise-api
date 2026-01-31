@@ -6,6 +6,7 @@ import { savingsGoalResolvers } from './savingsGoal';
 import { analyticsResolvers } from './analytics';
 import { adviceResolvers } from './advice';
 import { twoFactorResolvers } from './twoFactor';
+import { plaidResolvers } from './plaid';
 
 export const resolvers = {
   DateTime: DateTimeScalar,
@@ -20,6 +21,7 @@ export const resolvers = {
     ...analyticsResolvers.Query,
     ...adviceResolvers.Query,
     ...twoFactorResolvers.Query,
+    ...plaidResolvers.Query,
   },
 
   Mutation: {
@@ -29,6 +31,7 @@ export const resolvers = {
     ...transactionResolvers.Mutation,
     ...savingsGoalResolvers.Mutation,
     ...twoFactorResolvers.Mutation,
+    ...plaidResolvers.Mutation,
   },
 
   User: userResolvers.User,
@@ -36,4 +39,5 @@ export const resolvers = {
   Transaction: transactionResolvers.Transaction,
   SavingsGoal: savingsGoalResolvers.SavingsGoal,
   DashboardStats: analyticsResolvers.DashboardStats,
+  PlaidItem: plaidResolvers.PlaidItem,
 };
