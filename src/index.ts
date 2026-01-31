@@ -10,10 +10,15 @@ import http from 'http';
 import cors from 'cors';
 import { typeDefs, resolvers } from './schema';
 import { createContext, Context } from './context';
+import { plaidWebhookRouter } from './routes/plaid-webhooks';
 
 async function startServer() {
   const app = express();
   const httpServer = http.createServer(app);
+
+  // Register webhook routes BEFORE GraphQL middleware
+  // Webhooks use express.raw() for signature verification, not express.json()
+  app.use(plaidWebhookRouter);
 
   const server = new ApolloServer<Context>({
     typeDefs,
