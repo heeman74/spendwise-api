@@ -8,6 +8,7 @@ import { analyticsTypeDefs } from './analytics';
 import { adviceTypeDefs } from './advice';
 import { twoFactorTypeDefs } from './twoFactor';
 import { plaidTypeDefs } from './plaid';
+import { statementImportTypeDefs } from './statementImport';
 
 // Base types that other types extend
 const baseTypeDefs = gql`
@@ -31,4 +32,5 @@ export const typeDefs = [
   adviceTypeDefs,
   twoFactorTypeDefs,
   plaidTypeDefs,
+  statementImportTypeDefs,
 ];

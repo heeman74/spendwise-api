@@ -42,6 +42,15 @@ const mockPrismaClient: any = {
     delete: createMockFn(),
     aggregate: createMockFn(),
   },
+  merchantRule: {
+    findUnique: createMockFn(),
+    findMany: createMockFn(),
+    findFirst: createMockFn(),
+    create: createMockFn(),
+    update: createMockFn(),
+    upsert: createMockFn(),
+    delete: createMockFn(),
+  },
   $transaction: jest.fn((callback: any) => callback(mockPrismaClient)),
 };
 

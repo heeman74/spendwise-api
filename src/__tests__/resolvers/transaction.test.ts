@@ -467,7 +467,7 @@ describe('Transaction Resolvers', () => {
       expect(result.category).toBe('Groceries');
       expect(prisma.transaction.update).toHaveBeenCalledWith({
         where: { id: 'txn-1' },
-        data: { category: 'Groceries' },
+        data: { category: 'Groceries', categoryConfidence: 100, categorySource: 'manual' },
         include: { account: true },
       });
     });

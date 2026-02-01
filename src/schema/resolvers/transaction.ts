@@ -3,6 +3,7 @@ import { Context } from '../../context';
 import { requireAuth, NotFoundError } from '../../middleware/authMiddleware';
 import { invalidateCache } from '../../lib/redis';
 import { parseDecimal } from '../../lib/utils';
+import { createOrUpdateMerchantRule, getMerchantRules, deleteMerchantRule } from '../../lib/merchant-rules';
 
 interface TransactionFilterInput {
   search?: string;
@@ -161,6 +162,15 @@ export const transactionResolvers = {
 
       return transactions.map((t) => t.category);
     },
+
+    merchantRules: async (
+      _: unknown,
+      { limit = 50, offset = 0 }: { limit?: number; offset?: number },
+      context: Context
+    ) => {
+      const user = requireAuth(context);
+      return getMerchantRules(context.prisma, user.id, limit, offset);
+    },
   },
 
   Mutation: {
@@ -235,15 +245,54 @@ export const transactionResolvers = {
         }
       }
 
+      // If category changed, create a merchant rule
+      const updateData: any = { ...input };
+      if (input.category && input.category !== existing.category) {
+        updateData.categorySource = 'manual';
+        updateData.categoryConfidence = 100;
+
+        // Save merchant rule if transaction has a merchant
+        const merchant = input.merchant || existing.merchant;
+        if (merchant) {
+          try {
+            await createOrUpdateMerchantRule(context.prisma, user.id, merchant, input.category);
+          } catch (error) {
+            console.error('Failed to save merchant rule:', error);
+          }
+        }
+      }
+
       const transaction = await context.prisma.transaction.update({
         where: { id },
-        data: input,
+        data: updateData,
         include: { account: true },
       });
 
       await invalidateCache(`user:${user.id}:*`);
 
       return transaction;
+    },
+
+    saveMerchantRule: async (
+      _: unknown,
+      { merchant, category }: { merchant: string; category: string },
+      context: Context
+    ) => {
+      const user = requireAuth(context);
+      const rule = await createOrUpdateMerchantRule(context.prisma, user.id, merchant, category);
+      if (!rule) {
+        throw new Error('Failed to save merchant rule: invalid merchant name');
+      }
+      return rule;
+    },
+
+    deleteMerchantRule: async (
+      _: unknown,
+      { id }: { id: string },
+      context: Context
+    ) => {
+      const user = requireAuth(context);
+      return deleteMerchantRule(context.prisma, user.id, id);
     },
 
     deleteTransaction: async (_: unknown, { id }: { id: string }, context: Context) => {

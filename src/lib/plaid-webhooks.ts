@@ -1,4 +1,3 @@
-import * as jose from 'jose';
 import { sha256 } from 'js-sha256';
 import { plaidClient } from './plaid-client';
 
@@ -21,6 +20,7 @@ export async function verifyPlaidWebhook(
   body: string,
   headers: Record<string, string | string[] | undefined>
 ): Promise<boolean> {
+  const jose = await import('jose');
   // Extract the signed JWT from headers
   const signedJwt = headers['plaid-verification'];
 

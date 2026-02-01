@@ -12,6 +12,8 @@ export const transactionTypeDefs = gql`
     merchant: String
     description: String
     date: DateTime!
+    categoryConfidence: Int
+    categorySource: String
     createdAt: DateTime!
   }
 
@@ -76,11 +78,23 @@ export const transactionTypeDefs = gql`
     transaction(id: ID!): Transaction
     recentTransactions(limit: Int = 5): [Transaction!]!
     categories: [String!]!
+    merchantRules(limit: Int, offset: Int): [MerchantRule!]!
   }
 
   extend type Mutation {
     createTransaction(input: CreateTransactionInput!): Transaction!
     updateTransaction(id: ID!, input: UpdateTransactionInput!): Transaction!
     deleteTransaction(id: ID!): Boolean!
+    saveMerchantRule(merchant: String!, category: String!): MerchantRule!
+    deleteMerchantRule(id: ID!): Boolean!
+  }
+
+  type MerchantRule {
+    id: ID!
+    merchantPattern: String!
+    merchantDisplay: String!
+    category: String!
+    createdAt: DateTime!
+    updatedAt: DateTime!
   }
 `;

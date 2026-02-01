@@ -11,6 +11,7 @@ import cors from 'cors';
 import { typeDefs, resolvers } from './schema';
 import { createContext, Context } from './context';
 import { plaidWebhookRouter } from './routes/plaid-webhooks';
+import { statementUploadRouter } from './routes/statement-upload';
 
 async function startServer() {
   const app = express();
@@ -19,6 +20,9 @@ async function startServer() {
   // Register webhook routes BEFORE GraphQL middleware
   // Webhooks use express.raw() for signature verification, not express.json()
   app.use(plaidWebhookRouter);
+
+  // Register statement upload route (REST endpoint with multer)
+  app.use(statementUploadRouter);
 
   const server = new ApolloServer<Context>({
     typeDefs,

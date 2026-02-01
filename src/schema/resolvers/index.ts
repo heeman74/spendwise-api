@@ -7,6 +7,7 @@ import { analyticsResolvers } from './analytics';
 import { adviceResolvers } from './advice';
 import { twoFactorResolvers } from './twoFactor';
 import { plaidResolvers } from './plaid';
+import { statementImportResolvers } from './statementImport';
 
 export const resolvers = {
   DateTime: DateTimeScalar,
@@ -22,6 +23,7 @@ export const resolvers = {
     ...adviceResolvers.Query,
     ...twoFactorResolvers.Query,
     ...plaidResolvers.Query,
+    ...statementImportResolvers.Query,
   },
 
   Mutation: {
@@ -32,6 +34,7 @@ export const resolvers = {
     ...savingsGoalResolvers.Mutation,
     ...twoFactorResolvers.Mutation,
     ...plaidResolvers.Mutation,
+    ...statementImportResolvers.Mutation,
   },
 
   User: userResolvers.User,

@@ -7,6 +7,13 @@ export const DateTimeScalar = new GraphQLScalarType({
     if (value instanceof Date) {
       return value.toISOString();
     }
+    // Handle ISO strings from Redis/JSON cache deserialization
+    if (typeof value === 'string') {
+      const date = new Date(value);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString();
+      }
+    }
     throw new Error('DateTime cannot represent non-Date type');
   },
   parseValue(value: unknown): Date {
